@@ -1,20 +1,24 @@
-from pydantic_settings import BaseSettings
+# app/config/config.py
+import os
+from dotenv import load_dotenv
 
-class Settings(BaseSettings):
-    database_url: str
-    POSTGRES_DB: str
-    POSTGRES_USER: str
-    POSTGRES_PASSWORD: str
-    POSTGRES_HOST: str
-    POSTGRES_PORT: int = 5432
-    host: str = "0.0.0.0"
-    port: int = 8000
-    items_per_page: int = 10
-    alpha: float = 1.0
-    beta: float = 0.1
-    earth_radius: float = 6371.0  # Earth radius in kilometers
+# Load environment variables
+load_dotenv()
 
-    class Config:
-        env_file = ".env"
+# Detect environment: default to 'docker'
+ENV = os.getenv("ENV", "docker")
 
-settings = Settings()
+if ENV == "local":
+    user = os.getenv("LOCAL_DB_USER")
+    password = os.getenv("LOCAL_DB_PASSWORD")
+    host = os.getenv("LOCAL_DB_HOST", "127.0.0.1")
+    port = os.getenv("LOCAL_DB_PORT", "5432")
+    db = os.getenv("LOCAL_DB_NAME")
+else:
+    user = os.getenv("POSTGRES_USER")
+    password = os.getenv("POSTGRES_PASSWORD")
+    host = os.getenv("POSTGRES_HOST", "db")  # Docker service name
+    port = os.getenv("POSTGRES_PORT", "5432")
+    db = os.getenv("POSTGRES_DB")
+
+DATABASE_URL = f"postgresql+psycopg2://{user}:{password}@{host}:{port}/{db}"
